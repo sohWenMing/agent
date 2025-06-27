@@ -12,18 +12,23 @@ only for debugging purposes, uncomment if required
 print("api key: ", api_key)
 """
 arg_strings = sys.argv[1:]
+if len(arg_strings) == 0:
+    print("You need to supply a prompt! Exiting program")
+    sys.exit(1)
+
+prompt = string_parsing.join_with_space(arg_strings)
+print("Prompt: ", prompt)
 
 
-# client = genai.client(api_key=api_key)
+client = genai.Client(api_key=api_key)
 
-# response = client.models.generate_content(
-#     model="gemini-2.0-flash-lite-001",
-#     contents="why is boot.dev such a great place to learn backend development? use one paragraph maximum.",
-# )
+response = client.models.generate_content(
+    model="gemini-2.0-flash-lite-001",
+    contents=prompt,
+)
 
-# metadata = response.usage_metadata
+metadata = response.usage_metadata
 
-# print(response.text)
-# print("prompt tokens:", metadata.prompt_token_count)
-# print("Response tokens:", metadata.candidates_token_count)
-string_parsing.print_string("this is a test of a print string function")
+print(response.text)
+print("prompt tokens:", metadata.prompt_token_count)
+print("Response tokens:", metadata.candidates_token_count)
