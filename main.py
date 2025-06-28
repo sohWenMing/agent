@@ -1,4 +1,4 @@
-import os, sys, flags_parsing
+import os, sys, flags_parsing, gemini_module
 from dotenv import load_dotenv
 from google import genai 
 from google.genai import types
@@ -16,7 +16,11 @@ only for debugging purposes, uncomment if required
 print("api key: ", api_key)
 """
 
-client = genai.Client(api_key=api_key)
+client, is_ok = gemini_module.init_client(api_key)
+
+if is_ok == False:
+    print("there was a problem initialising the gemini client")
+    sys.exit(1)
 # init the client, will be re used for each request
 
 parser = flags_parsing.Parser()
@@ -38,10 +42,8 @@ while is_exit == False:
     else:
         print("##### querying ... #####")
         prompt = user_input
-        messages.append(types.Content(
-            role="user",
-            parts=[types.Part.from_text(text=prompt)]
-        ))
+        messages.append(gemini_module.create_user_content(prompt))
+        
         response = client.models.generate_content(
             model="gemini-2.0-flash-lite-001",
             contents=messages,
