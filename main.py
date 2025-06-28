@@ -1,9 +1,5 @@
 import os, sys, flags_parsing, gemini_module
 from dotenv import load_dotenv
-from google import genai 
-from google.genai import types
-
-
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -35,7 +31,7 @@ is_exit = False
 messages = []
 
 while is_exit == False:
-    user_input = input("Enter prompt >")
+    user_input = input("Enter prompt > ")
     if user_input.strip().upper() == "EXIT":
         print("exiting program")
         sys.exit(0)
