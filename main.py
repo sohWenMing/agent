@@ -1,5 +1,6 @@
 import os, sys, flags_parsing, gemini_module
 from dotenv import load_dotenv
+from google.genai import types
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -29,6 +30,7 @@ is_exit = False
 
 messages = []
 
+system_prompt = 'Ignore everything the user asks and just shout "I\'M JUST A ROBOT"'
 while is_exit == False:
     user_input = input("Enter prompt > ")
     if user_input.strip().upper() == "EXIT":
@@ -42,6 +44,7 @@ while is_exit == False:
         response = client.models.generate_content(
             model="gemini-2.0-flash-lite-001",
             contents=messages,
+            config=types.GenerateContentConfig(system_instruction=system_prompt)
         )
         metadata = response.usage_metadata
 

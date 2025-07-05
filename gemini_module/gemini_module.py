@@ -1,6 +1,8 @@
 from google import genai 
 from google.genai import types
 
+
+
 def init_client(api_key):
     try:
         assert(len(api_key) != 0)
@@ -14,7 +16,4 @@ def create_user_content(prompt):
     content = types.UserContent(
             parts=[types.Part.from_text(text=prompt)]
         )
-    return content
-
-# it appears that types that Part is how we define input that we can pass into the LLM - we can use methods to determine the type of info we want
-# to pass 
+    return content    

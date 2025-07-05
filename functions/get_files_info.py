@@ -1,5 +1,6 @@
 import os
 import pathlib
+import subprocess
 
 ########## Class Definitions ##########
 class FileInfo:
@@ -13,6 +14,22 @@ class FileInfo:
 
 
 ########## Public Funcs ##########
+def run_python_file(working_directory, file_path):
+    if file_path.startswith(".."):
+        return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
+
+    resolved_path = __get_resolved_path(working_directory, file_path)
+
+    if os.path.exists(resolved_path) == False:
+        return f'Error: File "{file_path}" not found'
+    
+    if file_path.endswith(".py") == False:
+        return f'Error: "{file_path}" is not a Python file.'
+    return __run_subprocess(resolved_path)
+
+
+
+
 def write_file_content(working_directory, file_path, content):
 
     if file_path.startswith(".."):
@@ -69,6 +86,24 @@ def get_files_info(working_directory, directory=None):
 
 
 ########### Private funcs ###########
+
+def __run_subprocess(file_path):
+    args = ["python3", file_path]
+    try:
+        completed_process = subprocess.run(args, capture_output=True, timeout=30)
+        returned_string =   (
+                                "RESULTS: \n" +  
+                                f"STDOUT: {completed_process.stdout}\n" + 
+                                f"STDERR: {completed_process.stderr}\n" 
+                            )
+        if completed_process.returncode != 0:
+            returned_string += f'Process exited with code "{completed_process.returncode}\n"'
+        if completed_process.stdout == None:
+            returned_string += "No output produced.\n"
+        return returned_string
+
+    except Exception as e:
+        return f'Error: executing Python file: {e}'
 
 def __check_resolved_path(working_directory, file_path):
     if   file_path.startswith(".."):
