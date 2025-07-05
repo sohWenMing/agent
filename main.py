@@ -21,7 +21,6 @@ if is_ok == False:
 
 parser = flags_parsing.Parser()
 is_verbose = parser.is_verbose()
-print("Is verbose: ", is_verbose)
 
 if is_verbose:
     print("verbose mode is on - the actual prompt from the user and the metadata will be printed")
