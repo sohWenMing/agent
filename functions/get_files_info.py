@@ -1,6 +1,40 @@
 import os
 import pathlib
 
+########## Class Definitions ##########
+class FileInfo:
+    def __init__(self, name, file_size, is_dir):
+        self.name = name 
+        self.file_size = file_size
+        self.is_dir = is_dir
+    
+    def __repr__(self):
+        return f"- {self.name}: file_size={self.file_size} bytes, is_dir={self.is_dir}\n"
+
+
+########## Public Funcs ##########
+def write_file_content(working_directory, file_path, content):
+
+    if file_path.startswith(".."):
+        return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
+        
+    resolved_path = __get_resolved_path(working_directory, file_path)
+    write_res = __write_to_file(resolved_path, content)
+    return write_res
+
+def get_file_content(working_directory, file_path):
+    if   file_path.startswith(".."):
+        return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
+    
+    returned_string_from_check, is_check_success = __check_resolved_path(working_directory, file_path)
+
+    if is_check_success == False:
+        return returned_string_from_check
+
+    resolved_path = returned_string_from_check
+
+    return __read_file_max_chars(resolved_path, 10000)
+
 def get_files_info(working_directory, directory=None):
     """
     working_directory refers to the directory within which the file
@@ -33,6 +67,47 @@ def get_files_info(working_directory, directory=None):
 
     return __get_dir_info(resolved_path, entries)
 
+
+########### Private funcs ###########
+
+def __check_resolved_path(working_directory, file_path):
+    if   file_path.startswith(".."):
+        return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory', False
+    resolved_path = __get_resolved_path(working_directory, file_path)
+    # gets the working dir + the additional directory input 
+
+    if os.path.exists(resolved_path) == False:
+        return f'error: "{file_path}" does not exist', False
+    # if the directory path does not exist, exit and return error
+
+    if  os.path.exists(resolved_path) == False:
+        return f'Error: File not found or is not a regular file: "{file_path}"', False
+    # if the file does not exist, exit early 
+
+    if os.path.isdir(resolved_path) == True:
+        return f'Error: File not found or is not a regular file: "{file_path}"', False
+    # if the file is a directory, exit early 
+
+    return resolved_path, True
+
+def __write_to_file(path, content):
+    try:
+        with open(path, "w") as f:
+            chars_written = f.write(content)
+            return f'Successfully wrote to "{path}" ({chars_written} characters written)'
+    except Exception as e:
+        return f"Error: {e}"
+
+
+
+def __read_file_max_chars(filepath, max_chars):
+    try:
+        with open(filepath, "r") as f:
+            file_content_string = f.read(max_chars)
+            return file_content_string
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 def __get_dir_info(resolved_path, entries):
     returned_string = f"Result for current directory:\n" 
 
@@ -62,12 +137,3 @@ example returned string:
 - package.json: file_size=1234 bytes, is_dir=False
 
 """
-class FileInfo:
-    def __init__(self, name, file_size, is_dir):
-        self.name = name 
-        self.file_size = file_size
-        self.is_dir = is_dir
-    
-    def __repr__(self):
-        return f"- {self.name}: file_size={self.file_size} bytes, is_dir={self.is_dir}\n"
-
