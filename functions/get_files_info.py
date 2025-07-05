@@ -17,7 +17,7 @@ def get_files_info(working_directory, directory=None):
         directory = "."
     # default to current directory if none is given
 
-    resolved_path = get_resolved_path(working_directory, directory)
+    resolved_path = __get_resolved_path(working_directory, directory)
     # gets the working dir + the additional directory input 
 
     if os.path.exists(resolved_path) == False:
@@ -31,9 +31,9 @@ def get_files_info(working_directory, directory=None):
     entries = os.listdir(resolved_path)
     # gets the list of all files and directories within the folder
 
-    return get_dir_info(resolved_path, entries)
+    return __get_dir_info(resolved_path, entries)
 
-def get_dir_info(resolved_path, entries):
+def __get_dir_info(resolved_path, entries):
     returned_string = f"Result for current directory:\n" 
 
     for entry in entries:
@@ -47,7 +47,7 @@ def get_dir_info(resolved_path, entries):
     
     return returned_string
 
-def get_resolved_path(working_directory, directory):
+def __get_resolved_path(working_directory, directory):
     base_dir = pathlib.Path(os.path.abspath(working_directory))
     relative_path = pathlib.Path(directory)
 
