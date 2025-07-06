@@ -1,6 +1,7 @@
 import os
 import pathlib
 import subprocess
+from google.genai import types
 
 ########## Class Definitions ##########
 class FileInfo:
@@ -17,25 +18,38 @@ class FileInfo:
 def call_function(function_call_part, verbose=False):
     working_directory = "./calculator"
     try:
-        func, args, is_get_func_success  = get_func_and_args(function_call_part)
-        if is_get_func_success == False:
-            raise ValueError(f"function {function_call_part.name} does not exist")
-
         if verbose==True:
             print(f"Calling function: {function_call_part.name}({function_call_part.args})")
         else:
             print(f" - Calling function: {function_call_part.name}")
 
+        func, args, is_get_func_success  = get_func_and_args(function_call_part)
+        if is_get_func_success == False:
+            return types.Content(
+                role="tool",
+                parts=[
+                    types.Part.from_function_response(
+                        name=function_call_part.name,
+                        response={"error": f"Unknown function: {function_call_part.name}"},
+                    )
+                ],
+            )
+
         if func == write_file_content:
-            return func(working_directory, 
-                        args["file_path"], args["content"])
+            return __gen__tool_content_result(function_call_part.name,
+                                              func(working_directory, args["file_path"], args["content"])
+                                            )
 
         elif func == get_files_info:
             if args == {}:
                 args["file_path"] = "."
-            return func(working_directory, args["file_path"])
+            return __gen__tool_content_result(function_call_part.name,
+                                              func(working_directory, args["file_path"])
+                                            )
         else:
-            return func(working_directory, args["file_path"])
+            return __gen__tool_content_result(function_call_part.name,
+                                              func(working_directory, args["file_path"])
+                                            )
     except Exception as e:
         return f"Error: {e}"
 
@@ -54,7 +68,6 @@ def get_func_and_args(function_call_part):
     else:
         return None, None, False
 
-
 def run_python_file(working_directory, file_path):
     if file_path.startswith(".."):
         return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
@@ -67,9 +80,6 @@ def run_python_file(working_directory, file_path):
     if file_path.endswith(".py") == False:
         return f'Error: "{file_path}" is not a Python file.'
     return __run_subprocess(resolved_path)
-
-
-
 
 def write_file_content(working_directory, file_path, content):
 
@@ -213,3 +223,13 @@ example returned string:
 - package.json: file_size=1234 bytes, is_dir=False
 
 """
+def __gen__tool_content_result(function_name, result):
+    return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function_name,
+                response={"result": result},
+            )
+        ],
+    )

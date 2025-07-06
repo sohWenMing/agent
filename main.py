@@ -2,6 +2,18 @@ import os, sys, flags_parsing, gemini_module, functions.functions
 from dotenv import load_dotenv
 from google.genai import types
 
+def parse_content(content):
+    try:
+        response = content.parts[0].function_response.response
+        if "error" in response:
+            return response["error"]
+        elif "result" in response:
+            return response["result"]
+        else:
+            raise ValueError("error looking up response dict")
+    except Exception as e:
+        raise ValueError(e)
+
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 if len(api_key) == 0:
@@ -29,6 +41,7 @@ if is_verbose:
 is_exit = False
 
 available_functions=gemini_module.available_functions
+call_function = functions.functions.call_function
 
 messages = []
 
@@ -50,7 +63,9 @@ while is_exit == False:
         function_calls = response.function_calls
         if function_calls != None:
             for call in function_calls:
-                res_text += functions.functions.call_function(call, is_verbose)
+                content = call_function(call, is_verbose)
+                res_text += parse_content(content)
+
         else:
             res_text = response.text
 
@@ -59,4 +74,5 @@ while is_exit == False:
         if is_verbose == True:
             print("prompt tokens:", metadata.prompt_token_count)
             print("Response tokens:", metadata.candidates_token_count)
+
 
