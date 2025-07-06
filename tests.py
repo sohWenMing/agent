@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from functions.get_files_info import get_files_info, get_file_content, write_file_content, run_python_file
+from functions.functions import get_files_info, get_file_content, write_file_content, run_python_file
 # this file is within the main directory, so cwd is the root 
 
 

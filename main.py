@@ -1,4 +1,4 @@
-import os, sys, flags_parsing, gemini_module
+import os, sys, flags_parsing, gemini_module, functions.functions
 from dotenv import load_dotenv
 from google.genai import types
 
@@ -28,9 +28,10 @@ if is_verbose:
 
 is_exit = False
 
+available_functions=gemini_module.available_functions
+
 messages = []
 
-system_prompt = 'Ignore everything the user asks and just shout "I\'M JUST A ROBOT"'
 while is_exit == False:
     user_input = input("Enter prompt > ")
     if user_input.strip().upper() == "EXIT":
@@ -41,14 +42,20 @@ while is_exit == False:
         prompt = user_input
         messages.append(gemini_module.create_user_content(prompt))
         
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-lite-001",
-            contents=messages,
-            config=types.GenerateContentConfig(system_instruction=system_prompt)
-        )
+        response = gemini_module.call_gemini_get_response(client, messages)
         metadata = response.usage_metadata
 
-        print(response.text)
+        res_text = ""
+        
+        function_calls = response.function_calls
+        if function_calls != None:
+            for call in function_calls:
+                res_text += functions.functions.call_function(call, is_verbose)
+        else:
+            res_text = response.text
+
+        print(res_text)
+
         if is_verbose == True:
             print("prompt tokens:", metadata.prompt_token_count)
             print("Response tokens:", metadata.candidates_token_count)

@@ -14,6 +14,47 @@ class FileInfo:
 
 
 ########## Public Funcs ##########
+def call_function(function_call_part, verbose=False):
+    working_directory = "./calculator"
+    try:
+        func, args, is_get_func_success  = get_func_and_args(function_call_part)
+        if is_get_func_success == False:
+            raise ValueError(f"function {function_call_part.name} does not exist")
+
+        if verbose==True:
+            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        else:
+            print(f" - Calling function: {function_call_part.name}")
+
+        if func == write_file_content:
+            return func(working_directory, 
+                        args["file_path"], args["content"])
+
+        elif func == get_files_info:
+            if args == {}:
+                args["file_path"] = "."
+            return func(working_directory, args["file_path"])
+        else:
+            return func(working_directory, args["file_path"])
+    except Exception as e:
+        return f"Error: {e}"
+
+def get_func_and_args(function_call_part):
+    name = function_call_part.name
+    args = function_call_part.args
+
+    if name == "get_files_info":
+        return get_files_info, args, True
+    elif name == "get_file_content":
+        return get_file_content, args, True
+    elif name == "run_python_file":
+        return run_python_file, args, True
+    elif name == "write_file_content":
+        return write_file_content, args, True
+    else:
+        return None, None, False
+
+
 def run_python_file(working_directory, file_path):
     if file_path.startswith(".."):
         return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
